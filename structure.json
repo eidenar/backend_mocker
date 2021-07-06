@@ -2,7 +2,7 @@
     {
         "url": "/test-endpoint",
         "response": {
-            "name": "testa",
+            "name": "test",
             "value": "val"
         }
     },
@@ -10,7 +10,7 @@
         "url": "/new-endpoint",
         "response": {
             "name": "new-endpoint",
-            "value": "returnvals"
+            "value": "returnval"
         }
     }
 ]
