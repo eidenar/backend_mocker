@@ -2,7 +2,7 @@
     {
         "url": "/test-endpoint",
         "response": {
-            "name": "test",
+            "name": "testers",
             "value": "val"
         }
     },
