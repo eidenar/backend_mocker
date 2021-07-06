@@ -1,0 +1,16 @@
+[
+    {
+        "url": "/test-endpoint",
+        "response": {
+            "name": "testa",
+            "value": "val"
+        }
+    },
+    {
+        "url": "/new-endpoint",
+        "response": {
+            "name": "new-endpoint",
+            "value": "returnvals"
+        }
+    }
+]
