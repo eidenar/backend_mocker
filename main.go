@@ -6,10 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const ADDRESS = "127.0.0.1:8080"
 const JSON_FILE = "structure.json"
+
+var paths map[string]interface{}
 
 type Route struct {
 	Url      string      `json:"url"`
@@ -17,6 +20,16 @@ type Route struct {
 }
 
 type ResponseFunc func(w http.ResponseWriter, r *http.Request)
+
+func getLastModifiedTime(filePath string) time.Time {
+	file, err := os.Stat(JSON_FILE)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return file.ModTime()
+}
 
 func readPaths() map[string]interface{} {
 	jsonFile, err := os.Open(JSON_FILE)
@@ -38,8 +51,6 @@ func readPaths() map[string]interface{} {
 }
 
 func myHandler(w http.ResponseWriter, r *http.Request) {
-	paths := readPaths()
-
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
@@ -58,13 +69,24 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusNotFound)
 	}
-
 }
 
 func main() {
-	// Read modified date of JSON_FILE
-	// Then check if it changed in handler func
-	// And re-read contents if necessary
+	paths = readPaths()
+
+	go func() {
+		lastModifiedTime := getLastModifiedTime(JSON_FILE)
+
+		for {
+			time.Sleep(1 * time.Second)
+			newLastModifiedTime := getLastModifiedTime(JSON_FILE)
+			if newLastModifiedTime.After(lastModifiedTime) {
+				paths = readPaths()
+				lastModifiedTime = newLastModifiedTime
+			}
+		}
+	}()
+
 	log.Println("Starting server on ", ADDRESS)
 	log.Fatal(http.ListenAndServe(ADDRESS, http.HandlerFunc(myHandler)))
 }
