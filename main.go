@@ -12,18 +12,15 @@ import (
 const ADDRESS = "127.0.0.1:8080"
 const JSON_FILE = "structure.json"
 
-var paths map[string]interface{}
+var routes map[string]interface{}
 
 type Route struct {
 	Url      string      `json:"url"`
 	Response interface{} `json:"response"`
 }
 
-type ResponseFunc func(w http.ResponseWriter, r *http.Request)
-
 func getLastModifiedTime(filePath string) time.Time {
-	file, err := os.Stat(JSON_FILE)
-
+	file, err := os.Stat(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,7 +28,7 @@ func getLastModifiedTime(filePath string) time.Time {
 	return file.ModTime()
 }
 
-func readPaths() map[string]interface{} {
+func readRoutes() map[string]interface{} {
 	jsonFile, err := os.Open(JSON_FILE)
 	if err != nil {
 		log.Fatal(err)
@@ -50,13 +47,13 @@ func readPaths() map[string]interface{} {
 	return mapping
 }
 
-func myHandler(w http.ResponseWriter, r *http.Request) {
+func routeHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
 
-	if val, ok := paths[r.URL.String()]; ok {
+	if val, ok := routes[r.URL.String()]; ok {
 		log.Println(r.Method, r.URL, string(body))
 
 		w.Header().Set("Access-Control-Allow-Headers", "*")
@@ -72,7 +69,7 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	paths = readPaths()
+	routes = readRoutes() // Read routes for 1st time
 
 	go func() {
 		lastModifiedTime := getLastModifiedTime(JSON_FILE)
@@ -81,12 +78,12 @@ func main() {
 			time.Sleep(1 * time.Second)
 			newLastModifiedTime := getLastModifiedTime(JSON_FILE)
 			if newLastModifiedTime.After(lastModifiedTime) {
-				paths = readPaths()
+				routes = readRoutes()
 				lastModifiedTime = newLastModifiedTime
 			}
 		}
 	}()
 
 	log.Println("Starting server on ", ADDRESS)
-	log.Fatal(http.ListenAndServe(ADDRESS, http.HandlerFunc(myHandler)))
+	log.Fatal(http.ListenAndServe(ADDRESS, http.HandlerFunc(routeHandler)))
 }
