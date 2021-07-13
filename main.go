@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"time"
 )
 
-const ADDRESS = "127.0.0.1:8080"
 const JSON_FILE = "structure.json"
 
 var routes map[string]interface{}
@@ -69,6 +69,11 @@ func routeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	host := flag.String("host", "127.0.0.1", "Specify host to serve backend")
+	port := flag.String("port", "8081", "Specify port to use")
+	flag.Parse()
+
+	address := *host + ":" + *port
 	routes = readRoutes() // Read routes for 1st time
 
 	go func() {
@@ -84,6 +89,6 @@ func main() {
 		}
 	}()
 
-	log.Println("Starting server on ", ADDRESS)
-	log.Fatal(http.ListenAndServe(ADDRESS, http.HandlerFunc(routeHandler)))
+	log.Println("Starting server on ", address)
+	log.Fatal(http.ListenAndServe(address, http.HandlerFunc(routeHandler)))
 }

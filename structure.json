@@ -7,7 +7,7 @@
         }
     },
     {
-        "url": "/new-endpoint",
+        "url": "/new-endpoint?withEmployees=1",
         "response": {
             "name": "new-endpoint",
             "value": "returnval"
