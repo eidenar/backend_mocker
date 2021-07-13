@@ -70,7 +70,7 @@ func routeHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	host := flag.String("host", "127.0.0.1", "Specify host to serve backend")
-	port := flag.String("port", "8081", "Specify port to use")
+	port := flag.String("port", "8080", "Specify port to use")
 	flag.Parse()
 
 	address := *host + ":" + *port
