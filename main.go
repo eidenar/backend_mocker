@@ -56,9 +56,15 @@ func routeHandler(w http.ResponseWriter, r *http.Request) {
 	if val, ok := routes[r.URL.String()]; ok {
 		log.Println(r.Method, r.URL, string(body))
 
-		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		//w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
 
 		json.NewEncoder(w).Encode(val)
 	} else {
