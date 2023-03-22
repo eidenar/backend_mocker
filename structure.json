@@ -1,16 +1,37 @@
 [
     {
-        "url": "/test-endpoint",
-        "response": {
-            "name": "testers",
-            "value": "valera"
-        }
+      "url": "/api/users",
+      "response": {
+        "users": [
+          {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com"
+          },
+          {
+            "id": 2,
+            "name": "Jane Doe",
+            "email": "jane.doe@example.com"
+          }
+        ]
+      }
     },
     {
-        "url": "/new-endpoint?withEmployees=1",
-        "response": {
-            "name": "new-endpoint",
-            "value": "returnval"
-        }
+      "url": "/api/products",
+      "response": {
+        "products": [
+          {
+            "id": 1,
+            "name": "Laptop",
+            "price": 1200
+          },
+          {
+            "id": 2,
+            "name": "Smartphone",
+            "price": 800
+          }
+        ]
+      }
     }
-]
+  ]
+  

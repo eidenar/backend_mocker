@@ -7,15 +7,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
-const JSON_FILE = "structure.json"
+const JSONFile = "structure.json"
 
-var routes map[string]interface{}
+var routes sync.Map
+var lastModifiedTime time.Time
 
 type Route struct {
-	Url      string      `json:"url"`
+	URL      string      `json:"url"`
 	Response interface{} `json:"response"`
 }
 
@@ -28,8 +30,8 @@ func getLastModifiedTime(filePath string) time.Time {
 	return file.ModTime()
 }
 
-func readRoutes() map[string]interface{} {
-	jsonFile, err := os.Open(JSON_FILE)
+func readRoutes() {
+	jsonFile, err := os.Open(JSONFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,38 +39,27 @@ func readRoutes() map[string]interface{} {
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var result []Route
-	json.Unmarshal([]byte(byteValue), &result)
+	json.Unmarshal(byteValue, &result)
 
-	mapping := make(map[string]interface{})
 	for _, route := range result {
-		mapping[route.Url] = route.Response
+		routes.Store(route.URL, route.Response)
 	}
-
-	return mapping
 }
 
 func routeHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		panic(err)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+	if r.Method == "OPTIONS" {
+		return
 	}
 
-	if val, ok := routes[r.URL.String()]; ok {
-		log.Println(r.Method, r.URL, string(body))
-
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		//w.Header().Set("Access-Control-Allow-Headers", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-
-		if r.Method == "OPTIONS" {
-			return
-		}
-
+	val, ok := routes.Load(r.URL.String())
+	if ok {
 		json.NewEncoder(w).Encode(val)
 	} else {
-		log.Println(r.Method, r.URL, "404 NOT FOUND")
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusNotFound)
 	}
@@ -80,16 +71,19 @@ func main() {
 	flag.Parse()
 
 	address := *host + ":" + *port
-	routes = readRoutes() // Read routes for 1st time
+	readRoutes()
+	lastModifiedTime = getLastModifiedTime(JSONFile)
 
 	go func() {
-		lastModifiedTime := getLastModifiedTime(JSON_FILE)
-
 		for {
 			time.Sleep(1 * time.Second)
-			newLastModifiedTime := getLastModifiedTime(JSON_FILE)
+			newLastModifiedTime := getLastModifiedTime(JSONFile)
 			if newLastModifiedTime.After(lastModifiedTime) {
-				routes = readRoutes()
+				routes.Range(func(key, _ interface{}) bool {
+					routes.Delete(key)
+					return true
+				})
+				readRoutes()
 				lastModifiedTime = newLastModifiedTime
 			}
 		}
