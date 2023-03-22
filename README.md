@@ -6,29 +6,29 @@ To get started with the Simple Mock Server, you will need to have Go installed o
 
 ## Installation
 1. Clone the repository:
-```
+```sh
 git clone https://github.com/eidenar/backend_mocker.git
 ```
 
 2. Change into the project directory:
-```
+```sh
 cd backend_mocker
 ```
 
 3. Ensure the structure.json file exists in the project directory with the route definitions you want to use. See the Example JSON File section for an example.
 
 4. Build the project:
-```
+```sh
 go build
 ```
 
 5. Run the server:
-```
+```sh
 ./main
 ```
 
 By default, the server will start on 127.0.0.1:8080. You can change the host and port by providing command-line flags:
-```
+```sh
 ./main -host 0.0.0.0 -port 3000
 ```
 
@@ -36,7 +36,7 @@ By default, the server will start on 127.0.0.1:8080. You can change the host and
 ## Example JSON File
 Here's an example JSON file containing two routes:
 
-```
+```json
 [
   {
     "url": "/api/users",
